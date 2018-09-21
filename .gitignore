@@ -1,0 +1,13 @@
+
+# System
+__pycache__
+.idea
+.DS_Store
+
+# Files
+buffer/*
+data/real/*
+data/syn/*
+graphs/*
+samples/*
+TestRange.py
