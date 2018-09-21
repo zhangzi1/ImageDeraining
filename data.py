@@ -2,25 +2,27 @@ from utils import *
 
 
 class Data:
-    def __init__(self, syn_path, real_path):
-        if os.path.exists(syn_path) and os.path.exists(real_path):
-            self.syn_path = syn_path
-            self.real_path = real_path
+    def __init__(self):
+        n_path = "./data/n/"
+        r_path = "./data/r/"
+        if os.path.exists(n_path) and os.path.exists(r_path):
+            self.n_path = n_path
+            self.r_path = r_path
         else:
             print("[!] Data path does not exist!")
 
-    def syn_sample(self, num):
+    def n_sample(self, num):
         matrix = []
-        for _, _, files in os.walk(self.syn_path):
+        for _, _, files in os.walk(self.n_path):
             file_list = random.sample(files, num)
             for file in file_list:
-                matrix.append(normalize(read_image(self.syn_path + file))[0])
+                matrix.append(normalize(read_image(self.n_path + file))[0])
         return matrix
 
-    def real_sample(self, num):
+    def r_sample(self, num):
         matrix = []
-        for _, _, files in os.walk(self.real_path):
+        for _, _, files in os.walk(self.r_path):
             file_list = random.sample(files, num)
             for file in file_list:
-                matrix.append(normalize(read_image(self.real_path + file))[0])
+                matrix.append(normalize(read_image(self.r_path + file))[0])
         return matrix

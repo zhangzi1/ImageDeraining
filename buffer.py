@@ -5,7 +5,8 @@ class Buffer:
 
     # Matrix:[None,35,55,1]
 
-    def __init__(self, path):
+    def __init__(self):
+        path = "./buffer/"
         if os.path.exists(path):
             self.path = path
             self.clear()

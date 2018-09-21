@@ -2,7 +2,8 @@ from utils import *
 
 
 class Sample:
-    def __init__(self, path):
+    def __init__(self):
+        path = "./samples/"
         if os.path.exists(path):
             self.path = path + time.asctime(time.localtime(time.time())) + "/"
             os.makedirs(self.path)
