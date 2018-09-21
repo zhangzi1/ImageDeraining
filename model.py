@@ -12,7 +12,7 @@ def refiner(scope, input, reuse=False):
         output = res_block(output, 64, 3, 1, "block3")
         output = res_block(output, 64, 3, 1, "block4")
         output = conv(output, 3, 1, 1, "conv2")
-        # output = tf.nn.tanh(output)
+        output = tf.nn.tanh(output)
         refiner_vars = tf.contrib.framework.get_variables(scp)
     return output, refiner_vars
 
@@ -69,7 +69,7 @@ discriminate_fake_loss = tf.reduce_sum(
 discriminator_loss = tf.reduce_mean(discriminate_real_loss + discriminate_fake_loss)
 
 # Training step
-optimizer = tf.train.GradientDescentOptimizer(0.0005)
+optimizer = tf.train.AdamOptimizer(0.001)
 sf_step = minimize(optimizer, self_regulation_loss, refiner_vars, 50)
 refiner_step = minimize(optimizer, refiner_loss, refiner_vars, 50)
 discriminator_step = minimize(optimizer, discriminator_loss, discriminator_vars, 50)
