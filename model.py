@@ -83,8 +83,8 @@ sess.run(tf.global_variables_initializer())
 
 # Summary
 tf.summary.scalar("Self Regularization Loss", tf.reduce_mean(self_regulation_loss))
-# tf.summary.scalar("Refine Loss", tf.reduce_mean(refine_loss))
-# tf.summary.scalar("Discriminator Loss", discriminator_loss)
+tf.summary.scalar("Refine Loss", tf.reduce_mean(refine_loss))
+tf.summary.scalar("Discriminator Loss", discriminator_loss)
 merged_summary = tf.summary.merge_all()
 writer = tf.summary.FileWriter("./graphs", sess.graph)
 
@@ -115,11 +115,10 @@ else:
     print("[*] Step 1 finished. ")
     saver.restore(sess, "./logs/step1/")
 
-'''
 # Step 2
 if not os.path.exists("./logs/step2/"):
     print("[*] Training starts.")
-    for i in range(200):
+    for i in range(1000):
         no_batch = data.n_sample(32)
         ra_batch = data.r_sample(32)
         sess.run(discriminator_step, feed_dict={R_input: ra_batch, D_image: no_batch})
@@ -134,14 +133,21 @@ else:
     print("[*] Step 2 finished. ")
     saver.restore(sess, "./logs/step2/")
 
-stuff_batch = data.r_sample(100)
+stuff_batch = data.r_sample(200)
 buffer.push(sess.run(R_output, feed_dict={R_input: stuff_batch}))
-
+stuff_batch = data.r_sample(200)
+buffer.push(sess.run(R_output, feed_dict={R_input: stuff_batch}))
+stuff_batch = data.r_sample(200)
+buffer.push(sess.run(R_output, feed_dict={R_input: stuff_batch}))
+stuff_batch = data.r_sample(200)
+buffer.push(sess.run(R_output, feed_dict={R_input: stuff_batch}))
+stuff_batch = data.r_sample(200)
+buffer.push(sess.run(R_output, feed_dict={R_input: stuff_batch}))
 
 # Step 3
 if not os.path.exists("./logs/step3/"):
     print("[*] Training starts.")
-    for i in range(1000):
+    for i in range(5000):
 
         for j in range(2):
             mini_batch = data.r_sample(32)
@@ -161,10 +167,11 @@ if not os.path.exists("./logs/step3/"):
         summary = sess.run(merged_summary, feed_dict={R_input: r_sample, D_image: n_sample})
         writer.add_summary(summary, global_step=i)
 
-        if (i + 1) % 10 == 0:
+        if (i + 1) % 100 == 0:
             sample_batch = sess.run(R_output, feed_dict={R_input: r_batch})
             sample.push(concat(sample_batch))
 
+            # PSNR
             matrix1 = normalize(read_image("./data/r/" + "5.png"))  # 23.58dB
             matrix1 = sess.run(R_output, feed_dict={R_input: matrix1})
             matrix2 = normalize(read_image("./data/n/" + "5.png"))
@@ -174,6 +181,3 @@ if not os.path.exists("./logs/step3/"):
     saver.save(sess, "./logs/step3/")
 else:
     saver.restore(sess, "./logs/step3/")
-
-print("[*] Model is ready to use.")
-'''
