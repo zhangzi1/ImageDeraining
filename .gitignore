@@ -6,8 +6,8 @@ __pycache__
 
 # Files
 buffer/*
-data/r/*
-data/n/*
+buffer0/*
+data/*
 graphs/*
 samples/*
 TestRange.py
