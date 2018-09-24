@@ -162,20 +162,18 @@ if not os.path.exists("./logs/step3/"):
             mini_batch = data.r_sample(32)
             sess.run(refiner_step, feed_dict={R_input: mini_batch})
 
-        for k in range(1):
-            # Concat with history
-            new_r_sample = data.r_sample(16)
-            new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
-            history_batch = buffer.sample(16)
-            concat_batch = np.concatenate([new_refined_batch, history_batch], axis=0)
+        # Concat with history
+        new_r_sample = data.r_sample(16)
+        new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
+        history_batch = buffer.sample(16)
+        concat_batch = np.concatenate([new_refined_batch, history_batch], axis=0)
 
-            # Train D to 80
+        # Train D to 80
+        for k in range(1):
             mini_batch = data.n_sample(32)
             sess.run(discriminator_step, feed_dict={R_input: concat_batch, D_image: mini_batch})
 
         # Update buffer
-        new_r_sample = data.r_sample(16)
-        new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
         buffer.random_replace(new_refined_batch)
 
         # Summary
