@@ -55,7 +55,7 @@ refine_loss = tf.reduce_sum(
     tf.nn.sparse_softmax_cross_entropy_with_logits(logits=D_fake_logits,
                                                    labels=tf.ones_like(D_fake_logits, dtype=tf.int32)[:, :, :, 0]),
     [1, 2])
-refiner_loss = tf.reduce_mean(0.5 * self_regulation_loss + refine_loss)
+refiner_loss = tf.reduce_mean(0.1 * self_regulation_loss + refine_loss)
 
 # Discriminator loss
 discriminate_real_loss = tf.reduce_sum(
@@ -129,7 +129,7 @@ print("SRL:", sess.run(tf.reduce_mean(self_regulation_loss), feed_dict={R_input:
 # Step 2
 if not os.path.exists("./logs/step2/"):
     print("[*] Training in progress...")
-    for i in range(200):
+    for i in range(1000):
         # Concat with history
         new_r_sample = data.r_sample(16)
         new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
@@ -158,7 +158,7 @@ if not os.path.exists("./logs/step3/"):
     for i in range(5000):
 
         # Train R to 130,70
-        for j in range(2):
+        for j in range(1):
             mini_batch = data.r_sample(32)
             sess.run(refiner_step, feed_dict={R_input: mini_batch})
 
@@ -186,9 +186,9 @@ if not os.path.exists("./logs/step3/"):
             sample.push(concat(sample_batch))
 
             # PSNR
-            matrix1 = normalize(read_image("./data/r/" + "37.png"))  # 23.58dB
+            matrix1 = normalize(read_image("./data/r/" + "30.png"))  # 14.415dB
             matrix1 = sess.run(R_output, feed_dict={R_input: matrix1})
-            matrix2 = normalize(read_image("./data/n/" + "37.png"))
+            matrix2 = normalize(read_image("./data/n/" + "30.png"))
             print("-----------------", PSNR(matrix1, matrix2), "---------------------")
 
     saver.save(sess, "./logs/step3/")
