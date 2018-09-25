@@ -55,7 +55,7 @@ refine_loss = tf.reduce_sum(
     tf.nn.sparse_softmax_cross_entropy_with_logits(logits=D_fake_logits,
                                                    labels=tf.ones_like(D_fake_logits, dtype=tf.int32)[:, :, :, 0]),
     [1, 2])
-refiner_loss = tf.reduce_mean(0.1 * self_regulation_loss + refine_loss)
+refiner_loss = tf.reduce_mean(0.5 * self_regulation_loss + refine_loss)
 
 # Discriminator loss
 discriminate_real_loss = tf.reduce_sum(
@@ -162,18 +162,19 @@ if not os.path.exists("./logs/step3/"):
             mini_batch = data.r_sample(32)
             sess.run(refiner_step, feed_dict={R_input: mini_batch})
 
-        # Concat with history
-        new_r_sample = data.r_sample(16)
-        new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
-        history_batch = buffer.sample(16)
-        concat_batch = np.concatenate([new_refined_batch, history_batch], axis=0)
-
         # Train D to 80
-        for k in range(1):
+        for k in range(2):
+            # Concat with history
+            new_r_sample = data.r_sample(16)
+            new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
+            history_batch = buffer.sample(16)
+            concat_batch = np.concatenate([new_refined_batch, history_batch], axis=0)
             mini_batch = data.n_sample(32)
             sess.run(discriminator_step, feed_dict={R_input: concat_batch, D_image: mini_batch})
 
         # Update buffer
+        new_r_sample = data.r_sample(16)
+        new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
         buffer.random_replace(new_refined_batch)
 
         # Summary
