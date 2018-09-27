@@ -97,12 +97,12 @@ n_sample = data.n_sample(1)
 r_batch = data.r_sample(16)
 
 # --------------------------------------------------------------------------------------------------------------------
-
+'''
 # Step 1
 if not os.path.exists("./logs/step1/"):
     print("[*] Training in progress...")
     for i in range(1000):
-        # Train SR to 25
+        # Train SR
         rain_batch = data.r_sample(32)
         sess.run(sf_step, feed_dict={R_input: rain_batch})
 
@@ -129,14 +129,15 @@ print("SRL:", sess.run(tf.reduce_mean(self_regulation_loss), feed_dict={R_input:
 # Step 2
 if not os.path.exists("./logs/step2/"):
     print("[*] Training in progress...")
-    for i in range(1000):
+    for i in range(200):
         # Concat with history
         new_r_sample = data.r_sample(16)
         new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
         history_batch = buffer.sample(16)
         concat_batch = np.concatenate([new_refined_batch, history_batch], axis=0)
+        np.random.shuffle(concat_batch)
 
-        # Train D to 55
+        # Train D
         no_batch = data.n_sample(32)
         sess.run(discriminator_step, feed_dict={R_input: concat_batch, D_image: no_batch})
 
@@ -151,24 +152,26 @@ else:
 print("[*] Step 2 finished. ")
 
 print("DL:", sess.run(discriminator_loss, feed_dict={R_input: r_sample, D_image: n_sample}))
+'''
 
 # Step 3
 if not os.path.exists("./logs/step3/"):
     print("[*] Training in progress...")
-    for i in range(5000):
+    for i in range(10000):
 
-        # Train R to 130,70
+        # Train R
         for j in range(1):
             mini_batch = data.r_sample(32)
             sess.run(refiner_step, feed_dict={R_input: mini_batch})
 
-        # Train D to 80
-        for k in range(2):
+        # Train D
+        for k in range(1):
             # Concat with history
             new_r_sample = data.r_sample(16)
             new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
             history_batch = buffer.sample(16)
             concat_batch = np.concatenate([new_refined_batch, history_batch], axis=0)
+            np.random.shuffle(concat_batch)
             mini_batch = data.n_sample(32)
             sess.run(discriminator_step, feed_dict={R_input: concat_batch, D_image: mini_batch})
 
@@ -190,7 +193,7 @@ if not os.path.exists("./logs/step3/"):
             matrix1 = normalize(read_image("./data/r/" + "30.png"))  # 14.415dB
             matrix1 = sess.run(R_output, feed_dict={R_input: matrix1})
             matrix2 = normalize(read_image("./data/n/" + "30.png"))
-            print("-----------------", PSNR(matrix1, matrix2), "---------------------")
+            print("-----------------", i+1, PSNR(matrix1, matrix2), "---------------------")
 
     saver.save(sess, "./logs/step3/")
 else:
