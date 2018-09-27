@@ -55,7 +55,7 @@ refine_loss = tf.reduce_sum(
     tf.nn.sparse_softmax_cross_entropy_with_logits(logits=D_fake_logits,
                                                    labels=tf.ones_like(D_fake_logits, dtype=tf.int32)[:, :, :, 0]),
     [1, 2])
-refiner_loss = tf.reduce_mean(0.5 * self_regulation_loss + refine_loss)
+refiner_loss = tf.reduce_mean(0.1 * self_regulation_loss + refine_loss)
 
 # Discriminator loss
 discriminate_real_loss = tf.reduce_sum(
@@ -84,7 +84,7 @@ sess.run(tf.global_variables_initializer())
 # Summary
 tf.summary.scalar("Self Regularization Loss", tf.reduce_mean(self_regulation_loss))
 tf.summary.scalar("Refine Loss", tf.reduce_mean(refine_loss))
-tf.summary.scalar("Discriminator Loss", discriminator_loss)
+tf.summary.scalar("Discriminator Loss on current refined image", discriminator_loss)
 merged_summary = tf.summary.merge_all()
 writer = tf.summary.FileWriter("./graphs", sess.graph)
 
@@ -164,21 +164,25 @@ if not os.path.exists("./logs/step3/"):
             mini_batch = data.r_sample(32)
             sess.run(refiner_step, feed_dict={R_input: mini_batch})
 
+        # Update buffer
+        new_r_sample = data.r_sample(16)
+        new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
+        if i < 100:
+            buffer.push(new_refined_batch)
+        else:
+            buffer.random_replace(new_refined_batch)
+
         # Train D
-        for k in range(1):
+        for k in range(2):
             # Concat with history
             new_r_sample = data.r_sample(16)
             new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
             history_batch = buffer.sample(16)
             concat_batch = np.concatenate([new_refined_batch, history_batch], axis=0)
             np.random.shuffle(concat_batch)
+            # Train D
             mini_batch = data.n_sample(32)
             sess.run(discriminator_step, feed_dict={R_input: concat_batch, D_image: mini_batch})
-
-        # Update buffer
-        new_r_sample = data.r_sample(16)
-        new_refined_batch = sess.run(R_output, feed_dict={R_input: new_r_sample})
-        buffer.random_replace(new_refined_batch)
 
         # Summary
         summary = sess.run(merged_summary, feed_dict={R_input: r_sample, D_image: n_sample})
@@ -193,7 +197,7 @@ if not os.path.exists("./logs/step3/"):
             matrix1 = normalize(read_image("./data/r/" + "30.png"))  # 14.415dB
             matrix1 = sess.run(R_output, feed_dict={R_input: matrix1})
             matrix2 = normalize(read_image("./data/n/" + "30.png"))
-            print("-----------------", i+1, PSNR(matrix1, matrix2), "---------------------")
+            print("-----------------", i + 1, PSNR(matrix1, matrix2), "---------------------")
 
     saver.save(sess, "./logs/step3/")
 else:

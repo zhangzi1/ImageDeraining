@@ -9,6 +9,7 @@ class Buffer:
         path = "./buffer/"
         if os.path.exists(path):
             self.path = path
+            self.clear()
         else:
             print("[!] Buffer path does not exist! ")
 
