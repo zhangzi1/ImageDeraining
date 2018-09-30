@@ -43,6 +43,7 @@ def minimize(optimizer, loss, vars, max_grad_norm):
 # Placeholder
 R_input = tf.placeholder(tf.float32, [None, 35, 55, 3])
 D_image = tf.placeholder(tf.float32, [None, 35, 55, 3])
+dB = tf.placeholder(tf.float32)
 
 # Network
 R_output, refiner_vars = refiner("Refiner", R_input)
@@ -55,7 +56,7 @@ refine_loss = tf.reduce_sum(
     tf.nn.sparse_softmax_cross_entropy_with_logits(logits=D_fake_logits,
                                                    labels=tf.ones_like(D_fake_logits, dtype=tf.int32)[:, :, :, 0]),
     [1, 2])
-refiner_loss = tf.reduce_mean(0.1 * self_regulation_loss + refine_loss)
+refiner_loss = tf.reduce_mean(0.5 * self_regulation_loss + refine_loss)
 
 # Discriminator loss
 discriminate_real_loss = tf.reduce_sum(
@@ -82,6 +83,7 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 # Summary
+tf.summary.scalar("PSNR", dB)
 tf.summary.scalar("Self Regularization Loss", tf.reduce_mean(self_regulation_loss))
 tf.summary.scalar("Refine Loss", tf.reduce_mean(refine_loss))
 tf.summary.scalar("Discriminator Loss on current refined image", discriminator_loss)
@@ -184,20 +186,20 @@ if not os.path.exists("./logs/step3/"):
             mini_batch = data.n_sample(32)
             sess.run(discriminator_step, feed_dict={R_input: concat_batch, D_image: mini_batch})
 
+        # PSNR
+        matrix1 = normalize(read_image("./data/r/" + "30.png"))  # 14.415dB
+        matrix1 = sess.run(R_output, feed_dict={R_input: matrix1})
+        matrix2 = normalize(read_image("./data/n/" + "30.png"))
+        psnr = PSNR(matrix1, matrix2)
+
         # Summary
-        summary = sess.run(merged_summary, feed_dict={R_input: r_sample, D_image: n_sample})
+        summary = sess.run(merged_summary, feed_dict={R_input: r_sample, D_image: n_sample, dB: psnr})
         writer.add_summary(summary, global_step=i)
 
         if (i + 1) % 100 == 0:
             # Sample
             sample_batch = sess.run(R_output, feed_dict={R_input: r_batch})
             sample.push(concat(sample_batch))
-
-            # PSNR
-            matrix1 = normalize(read_image("./data/r/" + "30.png"))  # 14.415dB
-            matrix1 = sess.run(R_output, feed_dict={R_input: matrix1})
-            matrix2 = normalize(read_image("./data/n/" + "30.png"))
-            print("-----------------", i + 1, PSNR(matrix1, matrix2), "---------------------")
 
     saver.save(sess, "./logs/step3/")
 else:
