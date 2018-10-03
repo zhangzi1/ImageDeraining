@@ -22,6 +22,7 @@ class Buffer:
     def sample(self, num):
         matrix = []
         for _, _, files in os.walk(self.path):
+            np.random.shuffle(files)
             file_list = random.sample(files, num)
             for file in file_list:
                 matrix.append(normalize(read_image(self.path + file))[0])
@@ -30,6 +31,7 @@ class Buffer:
     def random_replace(self, matrix):
         matrix = np.array(matrix)
         for _, _, files in os.walk(self.path):
+            np.random.shuffle(files)
             file_list = random.sample(files, matrix.shape[0])
             for file in file_list:
                 os.remove(self.path + file)

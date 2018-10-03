@@ -14,6 +14,7 @@ class Data:
     def n_sample(self, num):
         matrix = []
         for _, _, files in os.walk(self.n_path):
+            np.random.shuffle(files)
             file_list = random.sample(files, num)
             for file in file_list:
                 matrix.append(normalize(read_image(self.n_path + file))[0])
@@ -22,6 +23,7 @@ class Data:
     def r_sample(self, num):
         matrix = []
         for _, _, files in os.walk(self.r_path):
+            np.random.shuffle(files)
             file_list = random.sample(files, num)
             for file in file_list:
                 matrix.append(normalize(read_image(self.r_path + file))[0])
