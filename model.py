@@ -56,7 +56,7 @@ refine_loss = tf.reduce_sum(
     tf.nn.sparse_softmax_cross_entropy_with_logits(logits=D_fake_logits,
                                                    labels=tf.ones_like(D_fake_logits, dtype=tf.int32)[:, :, :, 0]),
     [1, 2])
-refiner_loss = tf.reduce_mean(0.5 * self_regulation_loss + refine_loss)
+refiner_loss = tf.reduce_mean(1.0 * self_regulation_loss + refine_loss)
 
 # Discriminator loss
 discriminate_real_loss = tf.reduce_sum(
@@ -70,7 +70,7 @@ discriminate_fake_loss = tf.reduce_sum(
 discriminator_loss = tf.reduce_mean(discriminate_real_loss + discriminate_fake_loss)
 
 # Training step
-optimizer = tf.train.AdamOptimizer(0.001)
+optimizer = tf.train.AdamOptimizer(0.0001)
 sf_step = minimize(optimizer, self_regulation_loss, refiner_vars, 50)
 refiner_step = minimize(optimizer, refiner_loss, refiner_vars, 50)
 discriminator_step = minimize(optimizer, discriminator_loss, discriminator_vars, 50)
@@ -97,6 +97,7 @@ sample = Sample()
 r_sample = data.r_sample(1)
 n_sample = data.n_sample(1)
 r_batch = data.r_sample(16)
+sample.push(concat(r_batch))
 
 # --------------------------------------------------------------------------------------------------------------------
 '''
