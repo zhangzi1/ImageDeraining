@@ -56,7 +56,7 @@ refine_loss = tf.reduce_sum(
     tf.nn.sparse_softmax_cross_entropy_with_logits(logits=D_fake_logits,
                                                    labels=tf.ones_like(D_fake_logits, dtype=tf.int32)[:, :, :, 0]),
     [1, 2])
-refiner_loss = tf.reduce_mean(1.0 * self_regulation_loss + refine_loss)
+refiner_loss = tf.reduce_mean(5.0 * self_regulation_loss + refine_loss)
 
 # Discriminator loss
 discriminate_real_loss = tf.reduce_sum(
@@ -70,7 +70,7 @@ discriminate_fake_loss = tf.reduce_sum(
 discriminator_loss = tf.reduce_mean(discriminate_real_loss + discriminate_fake_loss)
 
 # Training step
-optimizer = tf.train.AdamOptimizer(0.0001)
+optimizer = tf.train.AdamOptimizer(0.001)
 sf_step = minimize(optimizer, self_regulation_loss, refiner_vars, 50)
 refiner_step = minimize(optimizer, refiner_loss, refiner_vars, 50)
 discriminator_step = minimize(optimizer, discriminator_loss, discriminator_vars, 50)
@@ -160,7 +160,7 @@ print("DL:", sess.run(discriminator_loss, feed_dict={R_input: r_sample, D_image:
 # Step 3
 if not os.path.exists("./logs/step3/"):
     print("[*] Training in progress...")
-    for i in range(10000):
+    for i in range(5000):
 
         # Train R
         for j in range(1):
@@ -197,7 +197,7 @@ if not os.path.exists("./logs/step3/"):
         summary = sess.run(merged_summary, feed_dict={R_input: r_sample, D_image: n_sample, dB: psnr})
         writer.add_summary(summary, global_step=i)
 
-        if (i + 1) % 100 == 0:
+        if (i + 1) % 50 == 0:
             # Sample
             sample_batch = sess.run(R_output, feed_dict={R_input: r_batch})
             sample.push(concat(sample_batch))
