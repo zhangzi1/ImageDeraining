@@ -100,7 +100,7 @@ r_batch = data.r_sample(16)
 sample.push(concat(r_batch))
 
 # --------------------------------------------------------------------------------------------------------------------
-'''
+
 # Step 1
 if not os.path.exists("./logs/step1/"):
     print("[*] Training in progress...")
@@ -155,7 +155,7 @@ else:
 print("[*] Step 2 finished. ")
 
 print("DL:", sess.run(discriminator_loss, feed_dict={R_input: r_sample, D_image: n_sample}))
-'''
+
 
 # Step 3
 if not os.path.exists("./logs/step3/"):
